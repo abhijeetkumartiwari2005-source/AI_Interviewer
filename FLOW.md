@@ -65,10 +65,10 @@ PROFILE ─start─▶ CREATING ─ok─▶ INTRO (personas speak in turn) ─�
                      └──────────────┴──────────────┘          ▼   │
                                  SPEAKING ─────────────────▶ CLOSING ─▶ REPORT
 ```
-- **LISTENING**: listening indicator (pulsing mic and waveform from `AnalyserNode`). The live transcript appears in a side panel (read-only). Submits on: final transcript + 2.5s of silence after speech, or the "I'm done" button.
+- **LISTENING**: listening indicator (pulsing mic and waveform from `AnalyserNode`). The live transcript appears in a side panel (read-only). Submits on: 3.5s of silence after speech (a "submitting in Ns, keep talking to continue" hint appears after 1.5s, so a thinking pause doesn't cut the student off), or the "I'm done" button.
 - **Silence**: nothing said 10s after the question → the persona re-prompts once ("Take your time — would you like me to repeat the question?"). Another 10s of silence → submit as `(no answer)` (score 0, still evaluated).
 - **Unclear speech**: transcript under 3 words, or mean STT confidence under 0.5 → a client-side "Sorry, I didn't catch that, could you say it again?" with no LLM call, max 1 per question. Low STT confidence is **never** passed to scoring, because it correlates with accent.
-- **Interruption**: speechRecognition stays on during SPEAKING. If speech is detected → `speechSynthesis.cancel()` → LISTENING. There's also a "Repeat question" button.
+- **Interruption**: a "Skip — I'm ready to answer" button cancels TTS and jumps to LISTENING; a "Repeat question" button replays it. Voice barge-in (detecting speech during TTS) is planned for Day 3: with speakers instead of headphones the mic hears the interviewer's own voice, so it needs an echo check (ignore recognised text that matches the question being spoken) before it's safe to enable.
 - **Network failure**: the answer stays in reducer state. Retries with backoff (1s, 3s), then shows a "Retry" button. Nothing is lost.
 - **Text fallback**: shown only when `SpeechRecognition` is missing or the mic is denied, with a banner explaining why.
 
