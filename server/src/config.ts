@@ -16,7 +16,7 @@ const EnvSchema = z.object({
   FALLBACK_BASE_URL: z.string().url().default('https://api.groq.com/openai/v1'),
   FALLBACK_MODEL: z.string().default('llama-3.3-70b-versatile'),
 
-  LLM_TIMEOUT_MS: z.coerce.number().int().positive().default(15000),
+  LLM_TIMEOUT_MS: z.coerce.number().int().positive().default(10000), // per provider attempt
 });
 
 const parsed = EnvSchema.safeParse(process.env);

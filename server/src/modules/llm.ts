@@ -67,6 +67,17 @@ const providers: Provider[] = [...geminiProviders, ...(fallbackProvider ? [fallb
 
 export const llmInfo = { chain: providers.map((p) => p.name) };
 
+// Circuit breaker: a provider that just failed (503 / timeout / network) is skipped for a while,
+// so one overloaded model doesn't add its full timeout to every turn of a live interview.
+const COOLDOWN_MS = 60_000;
+const cooldownUntil = new Map<string, number>();
+const isCoolingDown = (p: Provider) => (cooldownUntil.get(p.name) ?? 0) > Date.now();
+
+/** Healthy providers first (in configured order), then cooling-down ones as a last resort. */
+function providerOrder(): Provider[] {
+  return [...providers.filter((p) => !isCoolingDown(p)), ...providers.filter(isCoolingDown)];
+}
+
 function parseJson(raw: string): unknown {
   const cleaned = raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '');
   return JSON.parse(cleaned);
@@ -86,7 +97,7 @@ export async function generateJSON<T>(opts: {
   const jsonSchema = toJsonSchema(opts.schema);
   const attempts: string[] = [];
 
-  for (const provider of providers) {
+  for (const provider of providerOrder()) {
     let user = opts.prompt;
     for (let attempt = 1; attempt <= 2; attempt++) {
       const started = Date.now();
@@ -95,9 +106,13 @@ export async function generateJSON<T>(opts: {
         raw = await provider.complete(opts.system, user, jsonSchema, AbortSignal.timeout(config.LLM_TIMEOUT_MS));
       } catch (err) {
         // Network error / timeout / 429 / 5xx: no point repairing, move to the next provider.
-        attempts.push(`${provider.name}: ${(err as Error).message.slice(0, 200)}`);
+        const reason = (err as Error).message.slice(0, 200);
+        attempts.push(`${provider.name}: ${reason}`);
+        cooldownUntil.set(provider.name, Date.now() + COOLDOWN_MS);
+        console.warn(`[llm] ${opts.label} ${provider.name} failed after ${Date.now() - started}ms, cooling down: ${reason}`);
         break;
       }
+      cooldownUntil.delete(provider.name);
 
       let problem: string;
       try {
