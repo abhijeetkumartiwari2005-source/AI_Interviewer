@@ -1,0 +1,29 @@
+{
+  "key": "cse",
+  "label": "Computer Science",
+  "aliases": ["cse", "cs", "computer science", "computer science and engineering", "it", "information technology", "software engineering"],
+  "coreAreas": [
+    "data structures and algorithms",
+    "database design and indexing",
+    "REST API design",
+    "operating systems and concurrency",
+    "computer networks and HTTP",
+    "scalability and caching",
+    "debugging and testing",
+    "authentication and security basics"
+  ],
+  "projectProbes": [
+    "why this tech stack over alternatives",
+    "database schema and how data is related",
+    "how authentication and authorisation work",
+    "the hardest bug and how it was found",
+    "what the candidate personally built vs teammates",
+    "how it would behave under heavy load"
+  ],
+  "scenarioSeeds": [
+    "10,000 students hit your application at the same moment during a placement drive",
+    "the app becomes slow during a live event and users are complaining",
+    "a deploy breaks login for half the users ten minutes before a demo",
+    "duplicate records start appearing in the database"
+  ]
+}

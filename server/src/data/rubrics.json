@@ -1,0 +1,18 @@
+{
+  "answerDimensions": {
+    "technicalAccuracy": { "2": "Incorrect or no technical content", "5": "Mostly correct but shallow or with minor errors", "8": "Correct, precise, uses right terms and reasoning" },
+    "relevance": { "2": "Does not address the question", "5": "Partly addresses it or drifts", "8": "Directly answers what was asked" },
+    "communication": { "2": "Hard to follow, no structure", "5": "Understandable but unstructured", "8": "Well structured: point, reason, example" },
+    "clarity": { "2": "Ambiguous, key terms unexplained", "5": "Mostly clear with some vague parts", "8": "Concrete and unambiguous" },
+    "depth": { "2": "Surface-level, buzzwords only", "5": "Some reasoning, little detail on how or why", "8": "Explains how and why, trade-offs, specifics" }
+  },
+  "competencies": {
+    "clarity": { "label": "Clarity of communication", "2": "Listener cannot follow the main point", "5": "Main point is clear but explanation wanders", "8": "Clear, structured, concise answers throughout" },
+    "delivery": { "label": "Confidence & vocal delivery", "2": "Very long silences or answers trail off", "5": "Some hesitation but completes answers", "8": "Steady pace, completes thoughts, recovers from pauses", "note": "Never penalise accent, pronunciation or personality." },
+    "problemSolving": { "label": "Logical thinking & problem-solving", "2": "No approach, jumps to guesses", "5": "Reasonable approach with gaps", "8": "Breaks the problem down, considers cases, verifies" },
+    "decisionMaking": { "label": "Decision-making & justification", "2": "Choices without reasons", "5": "Gives reasons but ignores alternatives", "8": "Weighs alternatives and justifies with trade-offs" },
+    "technicalKnowledge": { "label": "Technical knowledge (branch)", "2": "Core concepts missing or wrong", "5": "Knows basics, unsure beyond them", "8": "Solid, accurate grasp of core concepts" },
+    "projectOwnership": { "label": "Project understanding & ownership", "2": "Cannot explain own project's decisions", "5": "Explains what was built, not why", "8": "Explains decisions, alternatives, own contribution" },
+    "explanation": { "label": "Explaining technical concepts", "2": "Cannot explain concepts simply", "5": "Explains with some jargon or gaps", "8": "Explains simply and accurately, with examples" }
+  }
+}

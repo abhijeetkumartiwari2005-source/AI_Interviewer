@@ -1,0 +1,24 @@
+{
+  "key": "generic",
+  "label": "Engineering",
+  "aliases": [],
+  "coreAreas": [
+    "core fundamentals of the candidate's branch",
+    "the tools and skills listed in the profile",
+    "design trade-offs",
+    "testing and validation of engineering work",
+    "safety, cost and quality considerations"
+  ],
+  "projectProbes": [
+    "why this approach over alternatives",
+    "what the candidate personally did",
+    "the hardest problem faced and how it was solved",
+    "how results were measured or validated",
+    "what they would change with more time or budget"
+  ],
+  "scenarioSeeds": [
+    "a key component fails a test the day before submission",
+    "the budget is suddenly cut by 30 percent",
+    "two teammates disagree on the technical approach"
+  ]
+}

@@ -1,0 +1,42 @@
+[
+  {
+    "key": "cse",
+    "label": "CSE student — placement portal",
+    "profile": {
+      "name": "Rohan Verma",
+      "degree": "B.Tech",
+      "branch": "Computer Science",
+      "year": 4,
+      "targetRole": "Software Engineer",
+      "skills": ["JavaScript", "React", "Node.js", "Express", "MongoDB", "SQL", "Git"],
+      "projects": [
+        {
+          "title": "Campus Placement Portal",
+          "description": "A web portal where students register, upload resumes and apply to company drives, and the placement cell posts drives and shortlists candidates. Built with a React frontend, Node/Express REST API and MongoDB, with JWT login.",
+          "stack": ["React", "Node.js", "Express", "MongoDB", "JWT"]
+        }
+      ],
+      "experience": "Two-month web development internship at a small startup, built admin dashboards."
+    }
+  },
+  {
+    "key": "civil",
+    "label": "Civil student — G+2 residential building",
+    "profile": {
+      "name": "Sneha Patil",
+      "degree": "B.Tech",
+      "branch": "Civil Engineering",
+      "year": 4,
+      "targetRole": "Site Engineer",
+      "skills": ["AutoCAD", "STAAD.Pro", "Concrete mix design", "Surveying", "MS Excel"],
+      "projects": [
+        {
+          "title": "Analysis and Design of a G+2 Residential Building",
+          "description": "Planned a G+2 residential building in AutoCAD, analysed the frame in STAAD.Pro under dead, live and seismic loads, and designed slabs, beams, columns and isolated footings as per IS 456.",
+          "stack": ["AutoCAD", "STAAD.Pro", "IS 456", "IS 1893"]
+        }
+      ],
+      "experience": "Six-week site internship with a residential construction contractor."
+    }
+  }
+]
