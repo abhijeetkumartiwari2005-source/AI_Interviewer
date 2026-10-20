@@ -2,6 +2,7 @@ import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { AnswerBody, CreateInterviewBody } from '../schemas.js';
 import { createInterview, endInterview, getInterview, submitAnswer } from '../modules/interviewEngine.js';
+import { getReport } from '../modules/report.js';
 
 export const interviewsRouter = Router();
 
@@ -28,4 +29,8 @@ interviewsRouter.post('/:id/answer', answerLimiter, async (req, res) => {
 
 interviewsRouter.post('/:id/end', async (req, res) => {
   res.json(await endInterview(req.params.id));
+});
+
+interviewsRouter.get('/:id/report', async (req, res) => {
+  res.json(await getReport(req.params.id));
 });

@@ -5,6 +5,7 @@ export type ErrorCode =
   | 'VALIDATION'
   | 'NOT_FOUND'
   | 'INTERVIEW_COMPLETED'
+  | 'INTERVIEW_ACTIVE'
   | 'STALE_QUESTION'
   | 'LLM_UNAVAILABLE'
   | 'INTERNAL';

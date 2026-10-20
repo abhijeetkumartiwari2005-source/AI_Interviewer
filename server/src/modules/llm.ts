@@ -93,6 +93,7 @@ export async function generateJSON<T>(opts: {
   prompt: string;
   schema: z.ZodType<T>;
   label: string;
+  timeoutMs?: number; // per provider attempt; defaults to LLM_TIMEOUT_MS
 }): Promise<{ data: T; provider: string }> {
   const jsonSchema = toJsonSchema(opts.schema);
   const attempts: string[] = [];
@@ -103,7 +104,7 @@ export async function generateJSON<T>(opts: {
       const started = Date.now();
       let raw: string;
       try {
-        raw = await provider.complete(opts.system, user, jsonSchema, AbortSignal.timeout(config.LLM_TIMEOUT_MS));
+        raw = await provider.complete(opts.system, user, jsonSchema, AbortSignal.timeout(opts.timeoutMs ?? config.LLM_TIMEOUT_MS));
       } catch (err) {
         // Network error / timeout / 429 / 5xx: no point repairing, move to the next provider.
         const reason = (err as Error).message.slice(0, 200);

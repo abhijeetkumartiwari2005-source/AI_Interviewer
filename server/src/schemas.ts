@@ -153,6 +153,60 @@ export interface InterviewState {
   followUpsAsked: number;
   consecutiveHigh: number;
   pendingQuestionId: string | null;
+  report?: Report | null;
   createdAt: Date;
   updatedAt: Date;
+}
+
+// ---------- Report narrative (LLM output, validated). Numbers are computed in code, never here.
+const EvidencedPoint = z.object({ point: z.string().min(3), evidenceQuote: z.string() });
+
+export const ReportNarrativeSchema = z.object({
+  summary: z.string().min(10),
+  strengths: z.array(EvidencedPoint).max(4),
+  improvements: z.array(EvidencedPoint).max(4),
+  knowledgeGaps: z.array(z.string()).max(5),
+  practicePlan: z
+    .array(z.object({ activity: z.string().min(3), why: z.string(), resource: z.string() }))
+    .max(5),
+});
+export type ReportNarrative = z.infer<typeof ReportNarrativeSchema>;
+
+// ---------- Report (GET /:id/report). Cached on the session once the narrative succeeds.
+export interface Evidence {
+  quote: string; // verbatim from the candidate's transcript
+  turnIndex: number;
+}
+
+export interface Report {
+  interviewId: string;
+  generatedAt: string;
+  candidate: { name: string; branch: string; targetRole: string };
+  overall: number | null; // 0–100
+  verdict: 'ready' | 'almost_ready' | 'needs_practice' | 'insufficient_evidence';
+  coverage: { answers: number; scoredMain: number; minScoredMain: number; competenciesWithEvidence: number };
+  competencies: {
+    id: Competency;
+    label: string;
+    score: number | null; // 0–10
+    turns: number;
+    weight: number;
+    descriptor: string | null; // rubric anchor nearest the score
+  }[];
+  answers: {
+    question: Pick<Question, 'text' | 'persona' | 'stage' | 'type'>;
+    transcript: string;
+    evaluated: boolean;
+    score: number | null;
+    dims: TurnResult['scores'] | null;
+    feedback: string | null;
+  }[];
+  narrativeStatus: 'ok' | 'unavailable' | 'no_answers';
+  narrative: {
+    summary: string;
+    strengths: { point: string; evidence: Evidence }[];
+    improvements: { point: string; evidence: Evidence | null }[];
+    knowledgeGaps: string[];
+    practicePlan: { activity: string; why: string; resource: string }[];
+  } | null;
 }

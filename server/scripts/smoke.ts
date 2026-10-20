@@ -117,6 +117,9 @@ while (question) {
 check('at least 5 main questions', Object.values(used).reduce((a, b) => a + b, 0) >= 5);
 check('at least 2 follow-ups', followUps >= 2);
 
+const early = await call('GET', `/interviews/${id}/report`);
+check('report before end → 409 INTERVIEW_ACTIVE', early.status === 409 && early.data.error?.code === 'INTERVIEW_ACTIVE');
+
 const end = await call('POST', `/interviews/${id}/end`, {});
 check('end → completed', end.data.status === 'completed');
 console.log(`  [${end.data.closing.persona}] ${end.data.closing.text}`);
@@ -129,6 +132,33 @@ check('GET session (resume)', state.status === 200 && state.data.turns.length ==
 console.log('\nmemory.summary:', state.data.memory.summary);
 console.log('weaknesses:', state.data.memory.weaknesses);
 console.log('skillEstimate:', JSON.stringify(state.data.skillEstimate));
+
+// ---- Report
+let started = Date.now();
+const report = await call('GET', `/interviews/${id}/report`);
+const r = report.data;
+console.log(`\nreport in ${Date.now() - started}ms: overall ${r.overall} · ${r.verdict} · narrative ${r.narrativeStatus}`);
+for (const c of r.competencies ?? []) console.log(`  ${c.label.padEnd(36)} ${String(c.score ?? '—').padStart(4)}  (${c.turns} answers)`);
+check('report → 200 with overall score', report.status === 200 && typeof r.overall === 'number');
+check('report has a readiness verdict', ['ready', 'almost_ready', 'needs_practice'].includes(r.verdict));
+check('narrative generated', r.narrativeStatus === 'ok');
+
+if (r.narrative) {
+  const n = r.narrative;
+  console.log(`\nsummary: ${n.summary}`);
+  for (const s of n.strengths) console.log(`  + ${s.point}\n      “${s.evidence.quote}” (Q${s.evidence.turnIndex + 1})`);
+  for (const s of n.improvements) console.log(`  - ${s.point}${s.evidence ? `\n      “${s.evidence.quote}” (Q${s.evidence.turnIndex + 1})` : ''}`);
+  console.log(`  gaps: ${n.knowledgeGaps.join('; ') || 'none'}`);
+  for (const p of n.practicePlan) console.log(`  → ${p.activity}${p.resource ? ` [${p.resource}]` : ''}`);
+
+  const quotes = [...n.strengths.map((s: any) => s.evidence), ...n.improvements.map((s: any) => s.evidence).filter(Boolean)];
+  check('every evidence quote is verbatim from that answer', quotes.every((q: any) => r.answers[q.turnIndex].transcript.includes(q.quote)));
+  check('no URLs in the practice plan', !/https?:\/\/|www\./i.test(JSON.stringify(n.practicePlan)));
+}
+
+started = Date.now();
+const again = await call('GET', `/interviews/${id}/report`);
+check(`second report request is cached (${Date.now() - started}ms)`, again.data.generatedAt === r.generatedAt);
 
 const missing = await call('GET', '/interviews/000000000000000000000000');
 check('unknown id → 404', missing.status === 404);

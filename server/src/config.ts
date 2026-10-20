@@ -17,6 +17,8 @@ const EnvSchema = z.object({
   FALLBACK_MODEL: z.string().default('llama-3.3-70b-versatile'),
 
   LLM_TIMEOUT_MS: z.coerce.number().int().positive().default(10000), // per provider attempt
+  // The report prompt carries the whole interview and isn't on the live voice path, so it gets longer.
+  LLM_REPORT_TIMEOUT_MS: z.coerce.number().int().positive().default(30000),
 });
 
 const parsed = EnvSchema.safeParse(process.env);

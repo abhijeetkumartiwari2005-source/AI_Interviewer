@@ -53,7 +53,7 @@ export async function createInterview(profile: Profile, interviewType: Interview
 }
 
 export async function getInterview(id: string) {
-  const { pendingQuestionId: _lock, ...state } = await loadOr404(id);
+  const { pendingQuestionId: _lock, report: _report, ...state } = await loadOr404(id);
   return { ...state, panel: publicPanel(), progress: progressOf(state) };
 }
 
