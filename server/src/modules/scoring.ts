@@ -126,3 +126,22 @@ export function readiness(overall: number): Readiness {
   if (overall >= 55) return 'almost_ready';
   return 'needs_practice';
 }
+
+// ---------- Readiness verdict. Withheld when the interview gave too little to judge (e.g. ended early),
+// so one good intro answer can't come out as "Almost ready".
+export const MIN_SCORED_MAINS = 3;
+
+export type Verdict = Readiness | 'insufficient_evidence';
+
+export function hasEnoughEvidence(turns: Turn[], competencies: Record<Competency, CompetencyScore>): boolean {
+  const scoredMains = turns.filter((t) => isScored(t) && t.question.type === 'main').length;
+  return (
+    scoredMains >= MIN_SCORED_MAINS &&
+    competencies.technicalKnowledge.score !== null &&
+    competencies.projectOwnership.score !== null
+  );
+}
+
+export function verdict(turns: Turn[], competencies: Record<Competency, CompetencyScore>, overall: number | null): Verdict {
+  return overall !== null && hasEnoughEvidence(turns, competencies) ? readiness(overall) : 'insufficient_evidence';
+}

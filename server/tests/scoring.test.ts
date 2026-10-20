@@ -6,6 +6,7 @@ import {
   overallScore,
   readiness,
   startingDifficulty,
+  verdict,
   turnScore,
   updateSkillEstimate,
 } from '../src/modules/scoring.js';
@@ -147,5 +148,38 @@ describe('overallScore and readiness', () => {
     expect(readiness(74)).toBe('almost_ready');
     expect(readiness(55)).toBe('almost_ready');
     expect(readiness(54)).toBe('needs_practice');
+  });
+});
+
+describe('verdict (readiness with an evidence floor)', () => {
+  const full = [turn('intro', dims(8)), turn('project', dims(8)), turn('technical', dims(8)), turn('problem_solving', dims(8))];
+
+  it('gives a readiness class when enough was answered', () => {
+    const c = competencyScores(full);
+    expect(verdict(full, c, overallScore(c))).toBe('ready');
+  });
+
+  it('withholds readiness after fewer than 3 scored main answers', () => {
+    const early = full.slice(0, 2);
+    const c = competencyScores(early);
+    expect(overallScore(c)).not.toBeNull();
+    expect(verdict(early, c, overallScore(c))).toBe('insufficient_evidence');
+  });
+
+  it('does not count follow-ups or unevaluated turns toward the minimum', () => {
+    const turns = [
+      turn('intro', dims(8)),
+      turn('project', dims(8)),
+      turn('project', dims(8), { question: { ...full[1]!.question, type: 'followup' } }),
+      turn('technical', null),
+    ];
+    const c = competencyScores(turns);
+    expect(verdict(turns, c, overallScore(c))).toBe('insufficient_evidence');
+  });
+
+  it('withholds readiness when technical knowledge or project ownership has no evidence', () => {
+    const noProject = [turn('intro', dims(8)), turn('technical', dims(8)), turn('problem_solving', dims(8)), turn('decision_making', dims(8))];
+    const c = competencyScores(noProject);
+    expect(verdict(noProject, c, overallScore(c))).toBe('insufficient_evidence');
   });
 });
