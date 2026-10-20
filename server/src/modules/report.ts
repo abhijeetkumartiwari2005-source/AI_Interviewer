@@ -17,7 +17,7 @@ import {
 import { findEvidence } from './evidence.js';
 import { generateJSON, LLMUnavailableError } from './llm.js';
 import { buildReportPrompt, REPORT_SYSTEM_PROMPT } from './promptBuilder.js';
-import { COMPETENCY_WEIGHTS, competencyScores, MIN_SCORED_MAINS, overallScore, verdict } from './scoring.js';
+import { COMPETENCY_WEIGHTS, competencyScores, coverage, overallScore, verdict } from './scoring.js';
 
 // Concurrent requests for the same report share one LLM call.
 const inflight = new Map<string, Promise<Report>>();
@@ -42,6 +42,7 @@ async function buildReport(state: InterviewState): Promise<Report> {
   const scores = competencyScores(state.turns);
   const overall = overallScore(scores);
   const result = verdict(state.turns, scores, overall);
+  const covered = coverage(state.turns, state.plan, state.endedEarly);
   const competencies = COMPETENCIES.map((id) => ({
     id,
     label: rubrics.competencies[id]?.label ?? id,
@@ -56,7 +57,7 @@ async function buildReport(state: InterviewState): Promise<Report> {
     try {
       const { data } = await generateJSON({
         system: REPORT_SYSTEM_PROMPT,
-        prompt: buildReportPrompt(state, { overall, verdict: result, competencies }),
+        prompt: buildReportPrompt(state, { overall, verdict: result, competencies, coverage: covered }),
         schema: ReportNarrativeSchema,
         label: 'report',
         timeoutMs: config.LLM_REPORT_TIMEOUT_MS,
@@ -76,12 +77,7 @@ async function buildReport(state: InterviewState): Promise<Report> {
     candidate: { name: state.profile.name, branch: state.profile.branch, targetRole: state.profile.targetRole },
     overall,
     verdict: result,
-    coverage: {
-      answers: state.turns.length,
-      scoredMain: state.turns.filter((t) => t.evaluated && t.question.type === 'main').length,
-      minScoredMain: MIN_SCORED_MAINS,
-      competenciesWithEvidence: competencies.filter((c) => c.score !== null).length,
-    },
+    coverage: { ...covered, competenciesWithEvidence: competencies.filter((c) => c.score !== null).length },
     competencies,
     answers: state.turns.map((t) => ({
       question: { text: t.question.text, persona: t.question.persona, stage: t.question.stage, type: t.question.type },

@@ -153,6 +153,7 @@ export interface InterviewState {
   followUpsAsked: number;
   consecutiveHigh: number;
   pendingQuestionId: string | null;
+  endedEarly?: boolean;
   report?: Report | null;
   createdAt: Date;
   updatedAt: Date;
@@ -184,7 +185,16 @@ export interface Report {
   candidate: { name: string; branch: string; targetRole: string };
   overall: number | null; // 0–100
   verdict: 'ready' | 'almost_ready' | 'needs_practice' | 'insufficient_evidence';
-  coverage: { answers: number; scoredMain: number; minScoredMain: number; competenciesWithEvidence: number };
+  coverage: {
+    mainAttempted: number; // e.g. 3 of mainPlanned 6
+    mainPlanned: number;
+    followUps: number;
+    answered: number;
+    scoredMain: number;
+    minScoredMain: number;
+    endedEarly: boolean;
+    competenciesWithEvidence: number;
+  };
   competencies: {
     id: Competency;
     label: string;

@@ -205,9 +205,11 @@ async function processTurn(state: InterviewState, body: AnswerBody) {
 export async function endInterview(id: string) {
   const state = await loadOr404(id);
   if (state.status !== 'completed') {
+    // A question still pending means the candidate stopped before the plan finished.
+    const endedEarly = state.currentQuestion !== null;
     await InterviewModel.updateOne(
       { _id: id },
-      { $set: { status: 'completed', currentQuestion: null, pendingQuestionId: null } },
+      { $set: { status: 'completed', currentQuestion: null, pendingQuestionId: null, endedEarly } },
     );
   }
   return { status: 'completed' as const, closing: closingLine(state.profile) };

@@ -160,5 +160,22 @@ started = Date.now();
 const again = await call('GET', `/interviews/${id}/report`);
 check(`second report request is cached (${Date.now() - started}ms)`, again.data.generatedAt === r.generatedAt);
 
+check(
+  `coverage ${r.coverage?.mainAttempted}/${r.coverage?.mainPlanned} main, ran to completion`,
+  r.coverage?.mainAttempted === r.coverage?.mainPlanned && r.coverage?.endedEarly === false,
+);
+
+// ---- Candidate ends early: report shows what was attempted and withholds a verdict
+const short = await call('POST', '/interviews', { profile, interviewType: 'full_panel' });
+const shortId: string = short.data.interviewId;
+const q1 = short.data.question;
+await call('POST', `/interviews/${shortId}/answer`, { questionId: q1.id, transcript: ANSWERS[key]!.intro![0], durationSec: 25 });
+await call('POST', `/interviews/${shortId}/end`, {});
+const shortReport = (await call('GET', `/interviews/${shortId}/report`)).data;
+const cov = shortReport.coverage;
+console.log(`\nearly exit: ${cov.mainAttempted}/${cov.mainPlanned} main attempted · ${cov.followUps} follow-ups · ${shortReport.verdict}`);
+check('early exit → 1/6 attempted, endedEarly', cov.mainAttempted === 1 && cov.mainPlanned === 6 && cov.endedEarly === true);
+check('early exit → readiness withheld', shortReport.verdict === 'insufficient_evidence');
+
 const missing = await call('GET', '/interviews/000000000000000000000000');
 check('unknown id → 404', missing.status === 404);

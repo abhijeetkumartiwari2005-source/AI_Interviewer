@@ -2,6 +2,7 @@
 // (answer dims → competencies → overall → readiness, FLOW §8). Everything here is computed
 // in code from stored turns; the LLM never sets the final numbers.
 import { COMPETENCIES, type Competency, type Delivery, type Stage, type Turn, type TurnResult } from '../schemas.js';
+import { MAX_TURNS } from './adaptive.js';
 
 const SKILL_EMA_ALPHA = 0.4;
 
@@ -144,4 +145,30 @@ export function hasEnoughEvidence(turns: Turn[], competencies: Record<Competency
 
 export function verdict(turns: Turn[], competencies: Record<Competency, CompetencyScore>, overall: number | null): Verdict {
   return overall !== null && hasEnoughEvidence(turns, competencies) ? readiness(overall) : 'insufficient_evidence';
+}
+
+// ---------- Coverage: how much of the interview was actually attempted, so a reader of the report
+// can tell "ended after 3 of 6 questions" apart from "answered everything poorly".
+export interface Coverage {
+  mainAttempted: number;
+  mainPlanned: number;
+  followUps: number; // asked on the fly, so they have no planned total
+  answered: number; // turns with a non-empty answer
+  scoredMain: number;
+  minScoredMain: number;
+  endedEarly: boolean; // candidate ended it before the plan or the turn cap finished it
+}
+
+export function coverage(turns: Turn[], plan: Stage[], endedEarly?: boolean): Coverage {
+  const mains = turns.filter((t) => t.question.type === 'main');
+  return {
+    mainAttempted: mains.length,
+    mainPlanned: plan.length,
+    followUps: turns.length - mains.length,
+    answered: turns.filter((t) => t.transcript.trim()).length,
+    scoredMain: mains.filter(isScored).length,
+    minScoredMain: MIN_SCORED_MAINS,
+    // Sessions ended before this was recorded: infer it from what's left of the plan.
+    endedEarly: endedEarly ?? (mains.length < plan.length && turns.length < MAX_TURNS),
+  };
 }

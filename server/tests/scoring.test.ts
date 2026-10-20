@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   COMPETENCY_WEIGHTS,
   competencyScores,
+  coverage,
   deliveryScore,
   overallScore,
   readiness,
@@ -181,5 +182,40 @@ describe('verdict (readiness with an evidence floor)', () => {
     const noProject = [turn('intro', dims(8)), turn('technical', dims(8)), turn('problem_solving', dims(8)), turn('decision_making', dims(8))];
     const c = competencyScores(noProject);
     expect(verdict(noProject, c, overallScore(c))).toBe('insufficient_evidence');
+  });
+});
+
+describe('coverage', () => {
+  const PLAN: Stage[] = ['intro', 'project', 'project', 'technical', 'problem_solving', 'decision_making'];
+  const followUp = (stage: Stage) => turn(stage, dims(6), { question: { ...turn(stage, null).question, type: 'followup' } });
+
+  it('counts main questions attempted against the plan, follow-ups separately', () => {
+    const turns = [turn('intro', dims(7)), turn('project', dims(6)), followUp('project'), turn('project', null)];
+    expect(coverage(turns, PLAN, true)).toEqual({
+      mainAttempted: 3,
+      mainPlanned: 6,
+      followUps: 1,
+      answered: 4,
+      scoredMain: 2,
+      minScoredMain: 3,
+      endedEarly: true,
+    });
+  });
+
+  it('counts a silent answer as attempted but not answered', () => {
+    const c = coverage([turn('intro', dims(0), { transcript: '' })], PLAN, true);
+    expect(c).toMatchObject({ mainAttempted: 1, answered: 0 });
+  });
+
+  it('uses the recorded endedEarly flag when present', () => {
+    const turns = PLAN.map((s) => turn(s, dims(7)));
+    expect(coverage(turns, PLAN, false).endedEarly).toBe(false);
+  });
+
+  it('infers endedEarly for older sessions: plan unfinished and turn cap not reached', () => {
+    expect(coverage([turn('intro', dims(7))], PLAN).endedEarly).toBe(true);
+    expect(coverage(PLAN.map((s) => turn(s, dims(7))), PLAN).endedEarly).toBe(false);
+    const capped = [...PLAN.slice(0, 5).map((s) => turn(s, dims(5))), ...Array.from({ length: 6 }, () => followUp('project'))];
+    expect(coverage(capped, PLAN).endedEarly).toBe(false); // the 11-turn cap ended it, not the candidate
   });
 });

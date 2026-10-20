@@ -19,6 +19,7 @@ const interviewSchema = new Schema(
     followUpsAsked: { type: Number, default: 0 },
     consecutiveHigh: { type: Number, default: 0 },
     pendingQuestionId: { type: String, default: null }, // lock against double submits
+    endedEarly: { type: Boolean }, // set by /end; unset on sessions ended before it was recorded
     report: { type: Schema.Types.Mixed, default: null },
   },
   { timestamps: true, minimize: false },
