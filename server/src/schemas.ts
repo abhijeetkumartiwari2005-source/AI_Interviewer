@@ -125,6 +125,7 @@ export interface Turn {
   evaluated: boolean;
   dims?: TurnResult['scores'];
   score?: number;
+  signals?: TurnResult['competencySignals'];
   feedback?: string;
   evidenceQuote?: string;
   createdAt: Date;

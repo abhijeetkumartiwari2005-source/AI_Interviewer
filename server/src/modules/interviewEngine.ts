@@ -145,7 +145,13 @@ async function processTurn(state: InterviewState, body: AnswerBody) {
     durationSec: body.durationSec,
     ...(body.delivery && { delivery: body.delivery }),
     evaluated: !!result,
-    ...(result && { dims: result.scores, score, feedback: result.feedback, evidenceQuote: result.evidenceQuote }),
+    ...(result && {
+      dims: result.scores,
+      score,
+      signals: result.competencySignals,
+      feedback: result.feedback,
+      evidenceQuote: result.evidenceQuote,
+    }),
     createdAt: new Date(),
   };
 
