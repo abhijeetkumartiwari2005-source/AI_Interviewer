@@ -1,12 +1,5 @@
-import type { Progress, Stage } from '../types';
-
-const STAGE_LABEL: Record<Stage, string> = {
-  intro: 'Introduction',
-  project: 'Project deep dive',
-  technical: 'Technical',
-  problem_solving: 'Problem-solving',
-  decision_making: 'Decision-making',
-};
+import { STAGE_LABEL } from '../labels';
+import type { Progress } from '../types';
 
 export function ProgressBar({ progress }: { progress: Progress }) {
   const pct = Math.round(((progress.main - 1) / progress.mainTotal) * 100);

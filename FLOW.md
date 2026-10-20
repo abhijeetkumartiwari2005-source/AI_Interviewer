@@ -196,7 +196,7 @@ client/src/
   hooks/useInterview.ts                               // state machine
   pages/{Profile,InterviewRoom,Report}.tsx
   components/{PanelAvatar,ListeningIndicator,TranscriptPanel,ProgressBar,
-              LiveScores,SkillRadar,CompetencyCard,EvidenceList,EndButton}.tsx
+              LiveScores,CompetencyBars,VerdictBadge,EndButton}.tsx
 ```
 
 ## 13. Interview room layout
@@ -208,7 +208,7 @@ client/src/
 │  Current question (caption)   │ Live dashboard             │
 │  🎙 Listening ▁▃▅▇▅▃ 00:24    │  last answer: 7.2          │
 │  [I'm done] [Repeat question] │  dims bars (5)             │
-│                               │  skill estimate radar      │
+│                               │  skill estimate bars       │
 │                               │  Transcript ▾ (collapsible)│
 └───────────────────────────────┴────────────────────────────┘
 ```
@@ -238,7 +238,7 @@ client/src/
 | 1 | Express + Mongo + Zod + `llm` + `promptBuilder` + `POST /interviews` + `/answer` with evaluator; personas + CSE branch pack; test via curl |
 | 2 | Client: voice hooks, `useInterview` state machine, interview room with avatars + listening indicator; full voice loop end to end |
 | 3 | `adaptive` + follow-ups/claim probes + stage plan; `scoring` + unit tests; delivery metrics; silence/unclear/barge-in handling |
-| 4 | Report module + Report page (competencies, radar, evidence, practice plan); Civil branch pack; live dashboard; resume |
+| 4 | Report module + Report page (competency bars, evidence, practice plan); Civil branch pack; live dashboard; resume |
 | 5 | Polish, README (architecture, stack justification, model, prompt strategy, adaptive logic, evaluation, limitations), deploy (Vercel + Render + Atlas), record the 5–7 min demo |
 
 ## 17. Deliverables checklist

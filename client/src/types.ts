@@ -112,3 +112,66 @@ export interface SampleProfile {
   label: string;
   profile: Profile;
 }
+
+// ---------- Report (GET /interviews/:id/report)
+export type Competency =
+  | 'clarity'
+  | 'delivery'
+  | 'problemSolving'
+  | 'decisionMaking'
+  | 'technicalKnowledge'
+  | 'projectOwnership'
+  | 'explanation';
+
+export type Verdict = 'ready' | 'almost_ready' | 'needs_practice' | 'insufficient_evidence';
+
+export interface Evidence {
+  quote: string;
+  turnIndex: number;
+}
+
+export interface CompetencyResult {
+  id: Competency;
+  label: string;
+  score: number | null;
+  turns: number;
+  weight: number;
+  descriptor: string | null;
+}
+
+export interface ReportAnswer {
+  question: Pick<Question, 'text' | 'persona' | 'stage' | 'type'>;
+  transcript: string;
+  evaluated: boolean;
+  score: number | null;
+  dims: Dims | null;
+  feedback: string | null;
+}
+
+export interface Report {
+  interviewId: string;
+  generatedAt: string;
+  candidate: { name: string; branch: string; targetRole: string };
+  overall: number | null;
+  verdict: Verdict;
+  coverage: {
+    mainAttempted: number;
+    mainPlanned: number;
+    followUps: number;
+    answered: number;
+    scoredMain: number;
+    minScoredMain: number;
+    endedEarly: boolean;
+    competenciesWithEvidence: number;
+  };
+  competencies: CompetencyResult[];
+  answers: ReportAnswer[];
+  narrativeStatus: 'ok' | 'unavailable' | 'no_answers';
+  narrative: {
+    summary: string;
+    strengths: { point: string; evidence: Evidence }[];
+    improvements: { point: string; evidence: Evidence | null }[];
+    knowledgeGaps: string[];
+    practicePlan: { activity: string; why: string; resource: string }[];
+  } | null;
+}

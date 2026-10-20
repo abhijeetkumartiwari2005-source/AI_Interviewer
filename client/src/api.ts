@@ -5,6 +5,7 @@ import type {
   EndResponse,
   InterviewType,
   Profile,
+  Report,
   SampleProfile,
   SessionState,
 } from './types';
@@ -63,4 +64,5 @@ export const api = {
   answer: (id: string, body: { questionId: string; transcript: string; durationSec: number; delivery?: Delivery }) =>
     request<AnswerResponse>('POST', `/interviews/${id}/answer`, body),
   end: (id: string) => request<EndResponse>('POST', `/interviews/${id}/end`, {}),
+  report: (id: string) => request<Report>('GET', `/interviews/${id}/report`),
 };
