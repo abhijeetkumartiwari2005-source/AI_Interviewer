@@ -40,31 +40,30 @@ const geminiProviders: Provider[] = (gemini ? config.GEMINI_MODELS : []).map((mo
   },
 }));
 
-const compatProvider: Provider | null = config.OPENAI_COMPAT_API_KEY
-  ? (() => {
-      const client = new OpenAI({ apiKey: config.OPENAI_COMPAT_API_KEY, baseURL: config.OPENAI_COMPAT_BASE_URL, maxRetries: 0 });
-      return {
-        name: `${new URL(config.OPENAI_COMPAT_BASE_URL).hostname}:${config.OPENAI_COMPAT_MODEL}`,
-        async complete(system, user, jsonSchema, signal) {
-          const res = await client.chat.completions.create(
-            {
-              model: config.OPENAI_COMPAT_MODEL,
-              temperature: 0.4,
-              response_format: { type: 'json_object' },
-              messages: [
-                { role: 'system', content: `${system}\n\nRespond with JSON matching this JSON Schema:\n${JSON.stringify(jsonSchema)}` },
-                { role: 'user', content: user },
-              ],
-            },
-            { signal },
-          );
-          return res.choices[0]?.message?.content ?? '';
-        },
-      } satisfies Provider;
-    })()
+const compat = config.OPENAI_COMPAT_API_KEY
+  ? new OpenAI({ apiKey: config.OPENAI_COMPAT_API_KEY, baseURL: config.OPENAI_COMPAT_BASE_URL, maxRetries: 0 })
   : null;
+const compatHost = new URL(config.OPENAI_COMPAT_BASE_URL).hostname;
 
-const compatProviders = compatProvider ? [compatProvider] : [];
+const compatProviders: Provider[] = (compat ? config.OPENAI_COMPAT_MODELS : []).map((model) => ({
+  name: `${compatHost}:${model}`,
+  async complete(system, user, jsonSchema, signal) {
+    const res = await compat!.chat.completions.create(
+      {
+        model,
+        temperature: 0.4,
+        response_format: { type: 'json_object' },
+        messages: [
+          { role: 'system', content: `${system}\n\nRespond with JSON matching this JSON Schema:\n${JSON.stringify(jsonSchema)}` },
+          { role: 'user', content: user },
+        ],
+      },
+      { signal },
+    );
+    return res.choices[0]?.message?.content ?? '';
+  },
+}));
+
 const providers: Provider[] =
   config.LLM_PRIMARY === 'gemini' ? [...geminiProviders, ...compatProviders] : [...compatProviders, ...geminiProviders];
 
@@ -75,6 +74,17 @@ export const llmInfo = { chain: providers.map((p) => p.name) };
 const COOLDOWN_MS = 60_000;
 const cooldownUntil = new Map<string, number>();
 const isCoolingDown = (p: Provider) => (cooldownUntil.get(p.name) ?? 0) > Date.now();
+
+/** A rate limit (429) says when the model is free again; skip it exactly that long instead of the default. */
+function cooldownFor(err: unknown): number {
+  if (err instanceof OpenAI.APIError && err.status === 429) {
+    const header = Number(err.headers?.get('retry-after'));
+    const fromMessage = Number(/try again in ([\d.]+)s/i.exec(err.message)?.[1]);
+    const seconds = header > 0 ? header : fromMessage;
+    if (seconds > 0) return Math.min(seconds * 1000 + 500, COOLDOWN_MS);
+  }
+  return COOLDOWN_MS;
+}
 
 /** Healthy providers first (in configured order), then cooling-down ones as a last resort. */
 function providerOrder(): Provider[] {
@@ -112,8 +122,11 @@ export async function generateJSON<T>(opts: {
         // Network error / timeout / 429 / 5xx: no point repairing, move to the next provider.
         const reason = (err as Error).message.slice(0, 200);
         attempts.push(`${provider.name}: ${reason}`);
-        cooldownUntil.set(provider.name, Date.now() + COOLDOWN_MS);
-        console.warn(`[llm] ${opts.label} ${provider.name} failed after ${Date.now() - started}ms, cooling down: ${reason}`);
+        const cooldown = cooldownFor(err);
+        cooldownUntil.set(provider.name, Date.now() + cooldown);
+        console.warn(
+          `[llm] ${opts.label} ${provider.name} failed after ${Date.now() - started}ms, cooling down ${Math.round(cooldown / 1000)}s: ${reason}`,
+        );
         break;
       }
       cooldownUntil.delete(provider.name);

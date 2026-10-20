@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { z } from 'zod';
 
 const emptyToUndefined = (v: unknown) => (v === '' ? undefined : v);
+const splitList = (s: string) => s.split(',').map((m) => m.trim()).filter(Boolean);
 
 const EnvSchema = z.object({
   PORT: z.coerce.number().int().default(4000),
@@ -15,11 +16,12 @@ const EnvSchema = z.object({
   // Any OpenAI-compatible API: Groq by default, xAI etc. also work.
   OPENAI_COMPAT_API_KEY: z.preprocess(emptyToUndefined, z.string().optional()),
   OPENAI_COMPAT_BASE_URL: z.string().url().default('https://api.groq.com/openai/v1'),
-  OPENAI_COMPAT_MODEL: z.string().default('qwen/qwen3.8-27b'),
+  // Tried in order. Groq rate-limits each model separately, so chaining models multiplies free-tier throughput.
+  OPENAI_COMPAT_MODELS: z.string().default('qwen/qwen3.8-27b,openai/gpt-oss-120b,openai/gpt-oss-20b').transform(splitList),
 
   GEMINI_API_KEY: z.preprocess(emptyToUndefined, z.string().optional()),
   // Tried in order; free-tier models hit 503 "high demand" often, so chain a lighter one.
-  GEMINI_MODELS: z.string().default('gemini-3.5-flash-lite,gemini-3.8-flash').transform((s) => s.split(',').map((m) => m.trim()).filter(Boolean)),
+  GEMINI_MODELS: z.string().default('gemini-3.5-flash-lite,gemini-3.8-flash').transform(splitList),
 
   // Per provider attempt. Groq replies in ~2s, but Gemini flash-lite can take 10-15s as the backup.
   LLM_TIMEOUT_MS: z.coerce.number().int().positive().default(20000),

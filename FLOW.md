@@ -174,7 +174,7 @@ Question = { id, text, persona, stage, difficulty, type: "main" | "followup", in
 ## 12. Modules & layout (req. 10: modular)
 | Module | Job |
 |---|---|
-| `llm` | `generateJSON<T>(prompt, schema)`: Groq (primary, `LLM_PRIMARY`) → Gemini fallback, timeout, repair retry, circuit breaker |
+| `llm` | `generateJSON<T>(prompt, schema)`: Groq models in order (primary, `LLM_PRIMARY`) → Gemini models, timeout, repair retry, circuit breaker honouring 429 retry-after |
 | `promptBuilder` | assembles the system + turn prompt from profile, branch pack, persona, stage, memory, rubric |
 | `questionGen` | intro question + persona intros + degraded-path bridge templates |
 | `evaluator` | runs the turn LLM call, checks the evidence quote |
@@ -221,7 +221,7 @@ client/src/
 | Chrome STT ~60s cutoff | Auto-restart while LISTENING; concatenate the final segments |
 | Silence / unclear speech / interruption / network | See §5 |
 | TTS unavailable or no matching voice | Caption + avatar animation, go straight to LISTENING; default voice with persona pitch |
-| Groq 429 (free tier: ~1k output tokens/min) or timeout | Gemini models in order; provider cooled down for 60s; all fail → degraded path (§6), turn not scored |
+| Groq 429 (free tier: ~1k output tokens/min per model) or timeout | Next Groq model (each has its own limit), then Gemini; a rate-limited model is skipped for as long as Groq says, other failures 60s; all fail → degraded path (§6), turn not scored |
 | Invalid LLM JSON | 1 repair retry → degraded path |
 | Refresh mid-interview | `interviewId` in localStorage → `GET /:id` → resume at the current question |
 | Double submit | `questionId` ≠ current → 409 `STALE_QUESTION`, client ignores it |
