@@ -1,6 +1,7 @@
 // generateJSON: one call site for every LLM request.
-// Gemini models in order (GEMINI_MODELS), then an optional OpenAI-compatible fallback (Groq / xAI / ...).
-// Each provider gets a timeout, and one "repair" retry if the JSON is invalid.
+// Providers: an OpenAI-compatible API (Groq by default) and Gemini models (GEMINI_MODELS, in order);
+// LLM_PRIMARY picks which family goes first. Each provider gets a timeout and one "repair" retry
+// if the JSON is invalid.
 import { GoogleGenAI, ThinkingLevel } from '@google/genai';
 import OpenAI from 'openai';
 import { z } from 'zod';
@@ -17,12 +18,12 @@ interface Provider {
   complete(system: string, user: string, jsonSchema: object, signal: AbortSignal): Promise<string>;
 }
 
-const gemini = new GoogleGenAI({ apiKey: config.GEMINI_API_KEY });
+const gemini = config.GEMINI_API_KEY ? new GoogleGenAI({ apiKey: config.GEMINI_API_KEY }) : null;
 
-const geminiProviders: Provider[] = config.GEMINI_MODELS.map((model) => ({
+const geminiProviders: Provider[] = (gemini ? config.GEMINI_MODELS : []).map((model) => ({
   name: model,
   async complete(system, user, jsonSchema, signal) {
-    const res = await gemini.models.generateContent({
+    const res = await gemini!.models.generateContent({
       model,
       contents: user,
       config: {
@@ -39,15 +40,15 @@ const geminiProviders: Provider[] = config.GEMINI_MODELS.map((model) => ({
   },
 }));
 
-const fallbackProvider: Provider | null = config.FALLBACK_API_KEY
+const compatProvider: Provider | null = config.OPENAI_COMPAT_API_KEY
   ? (() => {
-      const client = new OpenAI({ apiKey: config.FALLBACK_API_KEY, baseURL: config.FALLBACK_BASE_URL, maxRetries: 0 });
+      const client = new OpenAI({ apiKey: config.OPENAI_COMPAT_API_KEY, baseURL: config.OPENAI_COMPAT_BASE_URL, maxRetries: 0 });
       return {
-        name: `${new URL(config.FALLBACK_BASE_URL).hostname}:${config.FALLBACK_MODEL}`,
+        name: `${new URL(config.OPENAI_COMPAT_BASE_URL).hostname}:${config.OPENAI_COMPAT_MODEL}`,
         async complete(system, user, jsonSchema, signal) {
           const res = await client.chat.completions.create(
             {
-              model: config.FALLBACK_MODEL,
+              model: config.OPENAI_COMPAT_MODEL,
               temperature: 0.4,
               response_format: { type: 'json_object' },
               messages: [
@@ -63,7 +64,9 @@ const fallbackProvider: Provider | null = config.FALLBACK_API_KEY
     })()
   : null;
 
-const providers: Provider[] = [...geminiProviders, ...(fallbackProvider ? [fallbackProvider] : [])];
+const compatProviders = compatProvider ? [compatProvider] : [];
+const providers: Provider[] =
+  config.LLM_PRIMARY === 'gemini' ? [...geminiProviders, ...compatProviders] : [...compatProviders, ...geminiProviders];
 
 export const llmInfo = { chain: providers.map((p) => p.name) };
 

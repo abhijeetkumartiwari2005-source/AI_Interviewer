@@ -7,7 +7,7 @@ A voice-based mock interview with a 3-person AI panel that adapts its questions 
 ## Run the server locally
 ```bash
 cd server
-cp .env.example .env     # fill in MONGODB_URI and GEMINI_API_KEY
+cp .env.example .env     # fill in MONGODB_URI and OPENAI_COMPAT_API_KEY (Groq) and/or GEMINI_API_KEY
 npm install
 npm run dev              # http://localhost:4000/api/health
 ```

@@ -8,20 +8,29 @@ const EnvSchema = z.object({
   CLIENT_ORIGIN: z.string().default('http://localhost:5173'),
   MONGODB_URI: z.string().min(1, 'MONGODB_URI is required (Atlas connection string)'),
 
-  GEMINI_API_KEY: z.string().min(1, 'GEMINI_API_KEY is required'),
+  // Which provider family is tried first; the other one is the backup.
+  // Groq answers a turn in ~2s; Gemini's free tier is slower and often over quota.
+  LLM_PRIMARY: z.enum(['openai_compat', 'gemini']).default('openai_compat'),
+
+  // Any OpenAI-compatible API: Groq by default, xAI etc. also work.
+  OPENAI_COMPAT_API_KEY: z.preprocess(emptyToUndefined, z.string().optional()),
+  OPENAI_COMPAT_BASE_URL: z.string().url().default('https://api.groq.com/openai/v1'),
+  OPENAI_COMPAT_MODEL: z.string().default('qwen/qwen3.8-27b'),
+
+  GEMINI_API_KEY: z.preprocess(emptyToUndefined, z.string().optional()),
   // Tried in order; free-tier models hit 503 "high demand" often, so chain a lighter one.
-  GEMINI_MODELS: z.string().default('gemini-3.8-flash,gemini-3.5-flash-lite').transform((s) => s.split(',').map((m) => m.trim()).filter(Boolean)),
+  GEMINI_MODELS: z.string().default('gemini-3.5-flash-lite,gemini-3.8-flash').transform((s) => s.split(',').map((m) => m.trim()).filter(Boolean)),
 
-  FALLBACK_API_KEY: z.preprocess(emptyToUndefined, z.string().optional()),
-  FALLBACK_BASE_URL: z.string().url().default('https://api.groq.com/openai/v1'),
-  FALLBACK_MODEL: z.string().default('llama-3.3-70b-versatile'),
-
-  LLM_TIMEOUT_MS: z.coerce.number().int().positive().default(10000), // per provider attempt
+  // Per provider attempt. Groq replies in ~2s, but Gemini flash-lite can take 10-15s as the backup.
+  LLM_TIMEOUT_MS: z.coerce.number().int().positive().default(20000),
   // The report prompt carries the whole interview and isn't on the live voice path, so it gets longer.
   LLM_REPORT_TIMEOUT_MS: z.coerce.number().int().positive().default(30000),
 });
 
-const parsed = EnvSchema.safeParse(process.env);
+const parsed = EnvSchema.refine((env) => env.OPENAI_COMPAT_API_KEY || env.GEMINI_API_KEY, {
+  message: 'Set at least one LLM key: OPENAI_COMPAT_API_KEY (Groq) or GEMINI_API_KEY',
+  path: ['OPENAI_COMPAT_API_KEY'],
+}).safeParse(process.env);
 if (!parsed.success) {
   console.error('Invalid environment configuration:');
   for (const issue of parsed.error.issues) console.error(`  ${issue.path.join('.')}: ${issue.message}`);
