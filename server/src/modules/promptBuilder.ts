@@ -135,7 +135,7 @@ RULES
 - knowledgeGaps: specific concepts or topics the candidate got wrong or could not explain (e.g. "database indexing", "curing time of concrete"), not soft skills. Empty if none.
 - practicePlan: 3-5 concrete activities targeting the improvements and gaps, each with why it helps.
   resource = the name of a well-known resource in plain text (a book, a course, a practice platform, a design code or standard), or "". Never include URLs or links.
-- summary: 2-3 sentences: overall impression and the single most important thing to work on.
+- summary: 2-3 sentences addressed to the candidate as "you": overall impression and the single most important thing to work on. Never open with the candidate's name or describe them in the third person.
 - Never comment on accent, pronunciation, grammar of a non-native speaker, or personality. Vocal delivery covers pace, pauses and filler words only, and carries the lowest weight.
 - Unevaluated answers have no scores; do not guess them.
 - If the interview ended early, say so plainly in the summary (e.g. "You answered 3 of 6 main questions"). Do not treat unasked topics as weaknesses or knowledge gaps.
@@ -171,7 +171,7 @@ ${scores.competencies
   .map((c) => `- ${c.label}: ${c.score ?? 'no evidence'} (from ${c.turns} answers). Rubric: ${rubricLine(c.id)}`)
   .join('\n')}
 
-PANEL NOTES
+PANEL NOTES (internal, written in the third person; use as context only, never copy them into your output)
 Summary: ${state.memory.summary || '(none)'}
 Strengths noted: ${state.memory.strengths.join('; ') || 'none'}
 Weaknesses noted: ${state.memory.weaknesses.join('; ') || 'none'}
