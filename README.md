@@ -63,6 +63,25 @@ npm run smoke -- civil      # same with the Civil profile
 npx tsx scripts/evalOnce.ts cse "your answer here"   # one evaluation turn, no database needed
 ```
 
+### Deploy (Render + Vercel + MongoDB Atlas)
+
+The repo ships a Render Blueprint ([`render.yaml`](render.yaml)) for the API and a Vercel config
+([`client/vercel.json`](client/vercel.json)) for the client. Keys are entered in each dashboard, never
+committed.
+
+1. **Atlas:** under *Network Access*, allow `0.0.0.0/0` (Render's free tier has no fixed IPs), and
+   use a database user with read/write access.
+2. **API on Render:** *New → Blueprint*, pick this repo. Fill in `MONGODB_URI`,
+   `OPENAI_COMPAT_API_KEY` (and optionally `GEMINI_API_KEY`); leave `CLIENT_ORIGIN` for step 4.
+   When it's live, `https://<service>.onrender.com/api/health` should return `"ok": true`.
+3. **Client on Vercel:** *Add New → Project*, import this repo, set **Root Directory** to `client`,
+   and add `VITE_API_URL=https://<service>.onrender.com/api`. Deploy.
+4. **Allow the client:** on Render, set `CLIENT_ORIGIN` to the Vercel URL (for example
+   `https://ai-interviewer.vercel.app`, no trailing slash) and redeploy.
+
+Both hosts serve HTTPS, which browsers require for microphone access. Render's free tier sleeps
+after 15 minutes idle and takes about a minute to wake, so open `/api/health` before a demo.
+
 ---
 
 ## How an interview runs
@@ -304,6 +323,7 @@ URLs, caching) and an early-exit report with the verdict withheld.
 | `LLM_PRIMARY` | `openai_compat` | Which provider family goes first (`openai_compat` or `gemini`) |
 | `LLM_TIMEOUT_MS` / `LLM_REPORT_TIMEOUT_MS` | `20000` / `30000` | Per-attempt timeouts |
 | `PORT` / `CLIENT_ORIGIN` | `4000` / `http://localhost:5173` | Server port and allowed CORS origin |
+| `TRUST_PROXY` | `0` | Reverse-proxy hops in front of the server (set to `1` on Render) so rate limits apply per user |
 
 Client: `VITE_API_URL` points a production build at the API (defaults to same-origin `/api`).
 

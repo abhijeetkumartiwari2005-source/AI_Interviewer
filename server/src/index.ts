@@ -8,6 +8,7 @@ import { llmInfo } from './modules/llm.js';
 import { interviewsRouter } from './routes/interviews.js';
 
 const app = express();
+app.set('trust proxy', config.TRUST_PROXY);
 app.use(cors({ origin: config.CLIENT_ORIGIN }));
 app.use(express.json({ limit: '100kb' }));
 
