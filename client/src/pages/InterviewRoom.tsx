@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ListeningIndicator } from '../components/ListeningIndicator';
+import { LiveScores } from '../components/LiveScores';
 import { PanelAvatar } from '../components/PanelAvatar';
 import { ProgressBar } from '../components/ProgressBar';
 import { TranscriptPanel } from '../components/TranscriptPanel';
@@ -121,20 +122,10 @@ export function InterviewRoom({ interview }: { interview: Interview }) {
               </span>
             </div>
           )}
-
-          {state.lastEvaluation && phase !== 'error' && (
-            <p className="last-score muted small">
-              Last answer:{' '}
-              {state.lastEvaluation.evaluated ? (
-                <strong>{state.lastEvaluation.score}/10</strong>
-              ) : (
-                <span className="chip chip--warn">evaluation unavailable</span>
-              )}
-            </p>
-          )}
         </section>
 
         <aside className="room__side">
+          <LiveScores evaluation={state.lastEvaluation} skillEstimate={state.skillEstimate} />
           <TranscriptPanel log={state.log} panel={panel} live={live} />
         </aside>
       </div>
