@@ -168,7 +168,9 @@ interface TextAnswerProps {
 function TextAnswer({ reason, canUseVoice, onSubmit, onRepeat, onVoice }: TextAnswerProps) {
   const [text, setText] = useState('');
   const [startedAt] = useState(() => Date.now());
-  useEffect(() => document.getElementById('text-answer')?.focus(), []);
+  useEffect(() => {
+    document.getElementById('text-answer')?.focus();
+  }, []);
 
   return (
     <form

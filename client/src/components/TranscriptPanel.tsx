@@ -10,7 +10,9 @@ interface Props {
 
 export function TranscriptPanel({ log, panel, live }: Props) {
   const endRef = useRef<HTMLDivElement>(null);
-  useEffect(() => endRef.current?.scrollIntoView({ block: 'end' }), [log.length, live]);
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ block: 'end' });
+  }, [log.length, live]);
 
   const nameOf = (who: LogEntry['who']) => (who === 'you' ? 'You' : (panel.find((p) => p.id === who)?.name.split(' ')[0] ?? ''));
 
