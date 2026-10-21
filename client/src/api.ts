@@ -38,6 +38,11 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   }
   const data = await res.json().catch(() => null);
   if (!res.ok) {
+    // A gateway error without our JSON error body means the API itself is down or unreachable.
+    if (!data?.error && res.status >= 502 && res.status <= 504) {
+      const devHint = import.meta.env.DEV ? ' (Running locally? Start the API with "npm run dev" in the server folder.)' : '';
+      throw new ApiError(res.status, 'SERVER_UNAVAILABLE', `The interview server isn’t reachable right now. Please try again in a moment.${devHint}`);
+    }
     throw new ApiError(res.status, data?.error?.code ?? 'UNKNOWN', data?.error?.message ?? `Request failed (${res.status})`);
   }
   return data as T;
