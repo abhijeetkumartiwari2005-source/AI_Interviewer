@@ -24,7 +24,7 @@ const genericPack = branchPacks.find((b) => b.key === 'generic')!;
 
 const normalise = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
 
-/** Maps a free-text branch ("Computer Sci & Engg", "CIVIL") to a branch pack; unknown → generic. */
+/** Maps a free-text branch ("Computer Sci & Engg", "PRODUCTION") to a branch pack; unknown → generic. */
 export function getBranchPack(branch: string): BranchPack {
   const b = normalise(branch);
   return (

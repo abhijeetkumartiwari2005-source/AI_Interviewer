@@ -1,6 +1,6 @@
 // End-to-end HTTP smoke test against a running server (npm run dev).
 //   npm run smoke            → CSE sample profile
-//   npm run smoke -- civil   → Civil sample profile
+//   npm run smoke -- production   → Production Engineering sample profile
 const BASE = process.env.API_URL ?? 'http://localhost:4000/api';
 const key = process.argv[2] ?? 'cse';
 
@@ -24,22 +24,22 @@ const ANSWERS: Record<string, Record<string, string[]>> = {
       'I would first check monitoring to see whether latency is in the API or the database. If the database, I would look at slow query logs and add the missing index. While fixing it I would protect the critical flow, submitting applications, and temporarily disable non-essential features like analytics, and tell the placement cell what is happening.',
     ],
   },
-  civil: {
+  production: {
     intro: [
-      "Hello, I'm Sneha, final year civil. My project was the analysis and design of a G plus 2 residential building. I made the plan in AutoCAD, analysed the frame in STAAD Pro for dead, live and seismic loads, and designed slabs, beams, columns and footings as per IS 456.",
+      "Hi, I'm Aditya, final year production engineering. My main project was reducing cycle time on a gear machining line at an auto-components plant. I mapped the line with a value stream map, did time studies at every station, found the hobbing station was the bottleneck, then rebalanced the line and used SMED to cut changeover time. I checked the new layout in FlexSim before the trial.",
     ],
     project: [
-      'We used STAAD because it is standard software and everyone uses it.',
-      'For loads I took live load of 2 kN per square metre for residential floors from IS 875 part 2, floor finish 1 kN per square metre, and seismic as per IS 1893 for zone III with importance factor 1. The 1.5 dead plus live combination governed most beams.',
+      'We used lean tools because lean is the best way to improve a line. It worked well.',
+      'For the baseline I did stopwatch time studies, thirty cycles per station over three shifts, and rated the operators to get standard time. Hobbing took 6.2 minutes against a takt time of 5 minutes, so it set the pace. I moved deburring off that station and split the chamfering work, and with SMED we converted die and fixture setting to external work, which took changeover from 42 to 18 minutes.',
     ],
     technical: [
-      'Curing keeps concrete moist so hydration continues; without it the surface dries, strength drops and you get shrinkage cracks. Normally we cure for at least seven days for OPC, longer for blended cements, using ponding or wet hessian.',
+      'Process capability compares the spread of a process with the tolerance. Cpk takes the distance from the mean to the nearer specification limit divided by three sigma, so it also penalises an off-centre process. Below 1.33 we usually treat a process as not capable. I used Minitab with subgroups of five parts and checked normality first.',
     ],
     problem_solving: [
-      'I would first check whether cracks are structural or shrinkage by looking at pattern, width and location. Hairline random cracks are usually plastic shrinkage from poor curing. Wide cracks near supports could mean overload or less reinforcement, so I would check the drawings, do a rebound hammer test, and consult the structural engineer before loading the slab.',
+      'First I would contain it: quarantine the suspect parts and add one hundred percent inspection on that feature. Then look at when it started and what changed, like a new tool, a new material lot, an operator or a program edit. I would check tool wear and offsets, run a quick capability study on the critical dimension, use a fishbone and five whys to find the root cause, fix it, and update the control plan.',
     ],
     decision_making: [
-      'I would not compromise curing or safety. I would add a second shift for formwork and shuttering, order materials earlier, and overlap finishing work on lower floors while upper floors are cast. I would tell the client honestly what is possible and what risk extra speed creates.',
+      'I would protect the customer order first. I would check how much inventory and work in progress we have, ask the supplier for a partial early shipment and look for an approved alternate supplier. Then I would prioritise the highest-margin and most urgent orders, tell the sales team and the customer early with realistic dates, and avoid switching to an unqualified material because of the quality risk.',
     ],
   },
 };

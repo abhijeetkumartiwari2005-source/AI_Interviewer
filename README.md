@@ -8,7 +8,7 @@ said, and ends with an evidence-based readiness report.
   interruptible by voice.
 - **Adaptive:** every answer is scored on five dimensions; vague answers get a clarifying follow-up,
   specific claims ("I used Redis for caching") get probed, and difficulty moves with performance.
-- **Branch-aware:** CSE and Civil Engineering packs ship; adding a branch is one JSON file.
+- **Branch-aware:** CSE and Production Engineering packs ship; adding a branch is one JSON file.
 - **Evidence-based report:** seven competencies with rubric anchors, quotes taken verbatim from the
   student's answers, knowledge gaps, a practice plan, and how much of the interview was attempted.
 
@@ -51,15 +51,15 @@ npm install
 npm run dev                 # http://localhost:5173  (proxies /api to the server)
 ```
 
-Open http://localhost:5173, pick a sample student (**CSE student, placement portal** or **Civil student,
-G+2 residential building**; both synthetic), allow the microphone, and start. No mic? The
+Open http://localhost:5173, pick a sample student (**CSE student, placement portal** or **Production
+student, machining line cycle time**; both synthetic), allow the microphone, and start. No mic? The
 interview falls back to typed answers.
 
 **Check the backend end to end without a browser:**
 ```bash
 cd server
 npm run smoke               # scripted CSE interview against the running server: 21 checks
-npm run smoke -- civil      # same with the Civil profile
+npm run smoke -- production # same with the Production Engineering profile
 npx tsx scripts/evalOnce.ts cse "your answer here"   # one evaluation turn, no database needed
 ```
 

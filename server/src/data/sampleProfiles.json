@@ -20,23 +20,23 @@
     }
   },
   {
-    "key": "civil",
-    "label": "Civil student — G+2 residential building",
+    "key": "production",
+    "label": "Production student — machining line cycle time",
     "profile": {
-      "name": "Sneha Patil",
+      "name": "Aditya Kulkarni",
       "degree": "B.Tech",
-      "branch": "Civil Engineering",
+      "branch": "Production Engineering",
       "year": 4,
-      "targetRole": "Site Engineer",
-      "skills": ["AutoCAD", "STAAD.Pro", "Concrete mix design", "Surveying", "MS Excel"],
+      "targetRole": "Graduate Engineer Trainee (Production)",
+      "skills": ["Lean manufacturing", "Time and motion study", "Minitab", "SolidWorks", "CNC programming (G-code)", "MS Excel"],
       "projects": [
         {
-          "title": "Analysis and Design of a G+2 Residential Building",
-          "description": "Planned a G+2 residential building in AutoCAD, analysed the frame in STAAD.Pro under dead, live and seismic loads, and designed slabs, beams, columns and isolated footings as per IS 456.",
-          "stack": ["AutoCAD", "STAAD.Pro", "IS 456", "IS 1893"]
+          "title": "Cycle Time Reduction on a Gear Machining Line",
+          "description": "Final-year project with an auto-components plant. Mapped the gear machining line with a value stream map, ran time studies at each station and found the hobbing station was the bottleneck. Rebalanced the line, applied SMED to cut changeover time, and validated the new layout in a FlexSim simulation before a trial run, where cycle time fell from 6.2 to 4.8 minutes per part.",
+          "stack": ["Value stream mapping", "Time study", "SMED", "FlexSim", "Minitab"]
         }
       ],
-      "experience": "Six-week site internship with a residential construction contractor."
+      "experience": "Eight-week internship in the production planning department of an auto-components manufacturer."
     }
   }
 ]

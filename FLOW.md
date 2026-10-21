@@ -8,7 +8,7 @@
 | Flat topic list | **Interview stages**: intro → project deep dive → technical → problem-solving → decision-making |
 | One score (0–10) per answer | **5 answer dimensions** per turn, rolled up into **7 report competencies** with rubrics and evidence |
 | Static question bank as fallback with score 5 | No faked scores: an unevaluated turn is flagged and left out of the averages. Fallback asks a persona "bridge" prompt, not a fixed bank question |
-| No branch handling | **Branch packs** (CSE + Civil at minimum) give the LLM branch context (deliverable 6) |
+| No branch handling | **Branch packs** (CSE + Production at minimum) give the LLM branch context (deliverable 6) |
 | Text input as an equal option | Voice first. Typing appears only when STT/mic is unavailable (assignment §3) |
 | — | Delivery metrics (pace, fillers, pauses) for the "confidence & vocal delivery" competency, **never accent** |
 | — | Live dashboard: progress, category scores, skill estimate (req. 9) |
@@ -16,7 +16,7 @@
 ## 1. Phases
 | Phase | What happens |
 |---|---|
-| Profile | Student fills in the profile (or clicks "Load sample: CSE / Civil" to use synthetic data), picks the interview type (Technical + Project / HR + Project / Full panel). Mic permission check. |
+| Profile | Student fills in the profile (or picks a sample student, CSE or Production, to use synthetic data), picks the interview type (Technical + Project / HR + Project / Full panel). Mic permission check. |
 | Intro | `POST /api/interviews` → session + panel. Each persona introduces itself (TTS, its avatar animates), then Persona 1 asks the intro question. |
 | Interview loop | Ask (TTS) → Listen (STT) → Submit → Evaluate → Adapt → follow-up / clarification / next question. Runs until the stage plan is finished or the user ends it. |
 | Close | Lead persona closes ("Thanks, that's all from us"). `POST /:id/end`. |
@@ -46,11 +46,11 @@
 
 ## 4. Branch packs (`server/src/data/branches/*.json`)
 ```json
-{ "branch": "civil", "coreAreas": ["structural design","materials","construction methods","surveying","site safety"],
-  "scenarioSeeds": ["concrete curing in monsoon","cracks found during inspection"],
-  "projectProbes": ["load assumptions","codes/standards used","material choice","site constraints"] }
+{ "key": "production", "coreAreas": ["manufacturing processes","CNC machining and CAD/CAM","quality control and SPC","lean manufacturing","production planning and control"],
+  "scenarioSeeds": ["rejection rate on a CNC line doubles","a bottleneck station piles up WIP"],
+  "projectProbes": ["how the baseline was measured","cycle/takt time calculations","quality metrics (Cpk)","what the candidate personally implemented"] }
 ```
-These are **context passed to the LLM, not questions to read out.** The prompt says: "Generate questions about the student's own project and these areas." Ship `cse.json` and `civil.json`; adding a new branch means adding a new JSON file (that's the "basic mechanism" for deliverable 6). An unknown branch falls back to `generic.json` plus the student's own skills list.
+These are **context passed to the LLM, not questions to read out.** The prompt says: "Generate questions about the student's own project and these areas." Ship `cse.json` and `production.json`; adding a new branch means adding a new JSON file (that's the "basic mechanism" for deliverable 6). An unknown branch falls back to `generic.json` plus the student's own skills list.
 
 ## 5. Frontend state machine (`useInterview`, useReducer)
 ```
@@ -188,7 +188,7 @@ Question = { id, text, persona, stage, difficulty, type: "main" | "followup", in
 server/src/
   index.ts  routes/interviews.ts  schemas.ts  db.ts  personas.ts
   modules/{llm,promptBuilder,questionGen,evaluator,adaptive,scoring,interviewEngine,report}.ts
-  data/{rubrics.json, branches/{cse,civil,generic}.json, sampleProfiles.json}
+  data/{rubrics.json, branches/{cse,production,generic}.json, sampleProfiles.json}
   tests/{adaptive,scoring}.test.ts
 client/src/
   App.tsx  api.ts  types.ts
@@ -229,7 +229,7 @@ client/src/
 
 ## 15. Security & data
 - API keys only in `server/.env` (`.env.example` committed, `.env` gitignored). The client never calls the LLM directly.
-- Only synthetic profiles in `sampleProfiles.json` (CSE placement-portal student, Civil final-year project student).
+- Only synthetic profiles in `sampleProfiles.json` (CSE placement-portal student, Production Engineering machining-line student).
 - No company or assignment name, and no internal prompts copied from the brief, in the public repo or the demo (confidentiality note).
 
 ## 16. Build order (5 days)
@@ -238,7 +238,7 @@ client/src/
 | 1 | Express + Mongo + Zod + `llm` + `promptBuilder` + `POST /interviews` + `/answer` with evaluator; personas + CSE branch pack; test via curl |
 | 2 | Client: voice hooks, `useInterview` state machine, interview room with avatars + listening indicator; full voice loop end to end |
 | 3 | `adaptive` + follow-ups/claim probes + stage plan; `scoring` + unit tests; delivery metrics; silence/unclear/barge-in handling |
-| 4 | Report module + Report page (competency bars, evidence, practice plan); Civil branch pack; live dashboard; resume |
+| 4 | Report module + Report page (competency bars, evidence, practice plan); second branch pack (Production); live dashboard; resume |
 | 5 | Polish, README (architecture, stack justification, model, prompt strategy, adaptive logic, evaluation, limitations), deploy (Vercel + Render + Atlas), record the 5–7 min demo |
 
 ## 17. Deliverables checklist
@@ -249,8 +249,8 @@ client/src/
 | 3 | Voice in/out | Web Speech API STT + TTS, §5 |
 | 4 | ≥5 questions, ≥2 adaptive follow-ups | §3 guarantee + §7 |
 | 5 | CSE project scenario | `cse.json` + sample profile (placement portal) |
-| 6 | Another branch | `civil.json` + sample profile |
+| 6 | Another branch | `production.json` + sample profile |
 | 7 | End report | §8–9 |
 | 8 | Clean GitHub repo | modules §12, tests for adaptive/scoring |
 | 9 | README | Day 5 |
-| 10 | Demo video | Script: CSE profile → vague answer triggers clarify → claim probe → scenario → report; then 30s showing the Civil profile's first questions |
+| 10 | Demo video | Script: CSE profile → vague answer triggers clarify → claim probe → scenario → report; then 30s showing the Production profile's first questions |

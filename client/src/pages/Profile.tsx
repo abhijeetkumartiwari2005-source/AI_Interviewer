@@ -40,7 +40,7 @@ const EMPTY: FormState = {
   experience: '',
 };
 
-const BRANCHES = ['Computer Science', 'Information Technology', 'Civil Engineering', 'Mechanical Engineering', 'Electrical Engineering', 'Electronics and Communication'];
+const BRANCHES = ['Computer Science', 'Information Technology', 'Civil Engineering', 'Mechanical Engineering', 'Production Engineering', 'Electrical Engineering', 'Electronics and Communication'];
 
 const splitList = (s: string) => s.split(',').map((x) => x.trim()).filter(Boolean);
 

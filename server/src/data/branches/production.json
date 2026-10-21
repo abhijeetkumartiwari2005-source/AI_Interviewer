@@ -1,0 +1,41 @@
+{
+  "key": "production",
+  "label": "Production Engineering",
+  "aliases": [
+    "production",
+    "production engineering",
+    "production and industrial engineering",
+    "industrial and production engineering",
+    "manufacturing engineering",
+    "pie",
+    "ipe"
+  ],
+  "coreAreas": [
+    "manufacturing processes (casting, forming, welding, machining)",
+    "CNC machining and CAD/CAM",
+    "metrology, tolerances and GD&T",
+    "quality control and statistical process control",
+    "production planning and control",
+    "work study and line balancing",
+    "lean manufacturing and six sigma",
+    "inventory and supply chain management",
+    "plant layout and material handling",
+    "maintenance and shop-floor safety"
+  ],
+  "projectProbes": [
+    "how the baseline was measured (time study, data collection, sample size)",
+    "why this process, machine or method was chosen over alternatives",
+    "cycle time, takt time or capacity calculations",
+    "quality metrics used (defect rate, Cpk) and how they changed",
+    "cost or productivity impact and how it was verified",
+    "what the candidate personally measured, designed or implemented"
+  ],
+  "scenarioSeeds": [
+    "the rejection rate on a CNC machining line suddenly doubles",
+    "one workstation is a bottleneck and work-in-progress keeps piling up before it",
+    "a key raw-material supplier will be two weeks late during peak demand",
+    "a critical machine breaks down with a large order due this week",
+    "output must double without adding floor space",
+    "changeover between product variants takes too long"
+  ]
+}

@@ -1,5 +1,5 @@
 // Runs one evaluation turn against the real LLM without needing MongoDB.
-// Useful for prompt tuning:  npx tsx scripts/evalOnce.ts [cse|civil] "answer text"
+// Useful for prompt tuning:  npx tsx scripts/evalOnce.ts [cse|production] "answer text"
 import { sampleProfiles } from '../src/catalog.js';
 import { decide } from '../src/modules/adaptive.js';
 import { evaluateTurn } from '../src/modules/evaluator.js';
