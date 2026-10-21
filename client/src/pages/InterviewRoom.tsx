@@ -23,6 +23,7 @@ export function InterviewRoom({ interview }: { interview: Interview }) {
         ? state.repromptLine
         : question?.text;
   const isTalking = phase === 'intro' || phase === 'speaking' || phase === 'reprompt';
+  const canBargeIn = sttSupported && state.inputMode === 'voice';
 
   function confirmEnd() {
     if (window.confirm('End the interview now? You’ll get a report based on the questions answered so far.')) {
@@ -34,14 +35,30 @@ export function InterviewRoom({ interview }: { interview: Interview }) {
     <main className="page page--room">
       <header className="room__header">
         {state.progress ? <ProgressBar progress={state.progress} /> : <span />}
-        <button
-          type="button"
-          className="btn btn--danger"
-          onClick={confirmEnd}
-          disabled={phase === 'submitting' || phase === 'closing' || phase === 'creating'}
-        >
-          End interview
-        </button>
+        <div className="room__header-actions">
+          {canBargeIn && (
+            <label
+              className="switch"
+              title="Start talking while a panelist is speaking to interrupt. Turn this off if questions get cut short by the panel’s own voice (for example on laptop speakers)."
+            >
+              <input
+                type="checkbox"
+                role="switch"
+                checked={interview.bargeInEnabled}
+                onChange={(e) => actions.setBargeInEnabled(e.target.checked)}
+              />
+              <span>Interrupt by voice</span>
+            </label>
+          )}
+          <button
+            type="button"
+            className="btn btn--danger"
+            onClick={confirmEnd}
+            disabled={phase === 'submitting' || phase === 'closing' || phase === 'creating'}
+          >
+            End interview
+          </button>
+        </div>
       </header>
 
       <section className="panel" aria-label="Interview panel">
@@ -58,7 +75,13 @@ export function InterviewRoom({ interview }: { interview: Interview }) {
 
           {isTalking && (
             <div className="stage__controls">
-              <span className="muted">{phase === 'intro' ? 'The panel is introducing themselves' : 'Listen to the question'}</span>
+              <span className="muted">
+                {phase === 'intro'
+                  ? 'The panel is introducing themselves'
+                  : canBargeIn && interview.bargeInEnabled
+                    ? 'Listen to the question, or just start answering'
+                    : 'Listen to the question'}
+              </span>
               <button type="button" className="btn btn--ghost" onClick={actions.skipSpeech}>
                 {phase === 'intro' ? 'Skip intros' : 'Skip — I’m ready to answer'}
               </button>
@@ -67,6 +90,7 @@ export function InterviewRoom({ interview }: { interview: Interview }) {
 
           {phase === 'listening' && state.inputMode === 'voice' && (
             <>
+              {state.bargedIn && <p className="muted small barge-hint">Go ahead, I’m listening. Start your answer from the beginning.</p>}
               <ListeningIndicator level={level} silenceMs={interview.silenceMs} silenceSubmitMs={interview.silenceSubmitMs} />
               <div className="stage__controls">
                 <button type="button" className="btn btn--primary" onClick={actions.doneSpeaking}>

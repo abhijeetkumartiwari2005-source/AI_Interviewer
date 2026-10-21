@@ -16,6 +16,7 @@ import type {
   SessionState,
   SkillEstimate,
 } from '../types';
+import { isBargeIn } from '../voice/bargeIn';
 import { computeDelivery } from '../voice/deliveryMetrics';
 import { sttSupported, useSpeechRecognition, type FatalSttError, type Snapshot } from '../voice/useSpeechRecognition';
 import { useSpeechSynthesis } from '../voice/useSpeechSynthesis';
@@ -28,6 +29,8 @@ const MIN_WORDS = 3;
 const MIN_CONFIDENCE = 0.5; // only used to ask for a repeat, never for scoring
 
 const STORAGE_KEY = 'ai-interviewer:interviewId';
+const BARGE_IN_KEY = 'ai-interviewer:bargeIn';
+const BARGE_IN_CHECK_MS = 200;
 
 export type Phase =
   | 'profile'
@@ -73,6 +76,7 @@ export interface InterviewUiState {
   inputMode: 'voice' | 'text';
   inputModeReason: string | null;
   listenNonce: number; // bump to restart listening for the same question
+  bargedIn: boolean; // candidate interrupted the panelist by voice for the current question
 }
 
 type Action =
@@ -82,6 +86,7 @@ type Action =
   | { type: 'INTRO_DONE' }
   | { type: 'SPOKEN' }
   | { type: 'REPEAT' }
+  | { type: 'BARGE_IN' }
   | { type: 'REPROMPT'; kind: 'silence' | 'unclear'; line: string }
   | { type: 'REPROMPT_DONE' }
   | { type: 'SUBMIT'; answer: PendingAnswer }
@@ -111,6 +116,7 @@ const initialState: InterviewUiState = {
   inputMode: 'voice',
   inputModeReason: null,
   listenNonce: 0,
+  bargedIn: false,
 };
 
 let logSeq = 0;
@@ -163,7 +169,9 @@ function reducer(state: InterviewUiState, action: Action): InterviewUiState {
           : state.log,
       };
     case 'REPEAT':
-      return { ...state, phase: 'speaking' };
+      return { ...state, phase: 'speaking', bargedIn: false };
+    case 'BARGE_IN':
+      return { ...state, bargedIn: true };
     case 'REPROMPT':
       return {
         ...state,
@@ -178,6 +186,7 @@ function reducer(state: InterviewUiState, action: Action): InterviewUiState {
         ...state,
         phase: 'submitting',
         pending: action.answer,
+        bargedIn: false,
         log: [...state.log, entry('you', action.answer.transcript || '(no answer)', 'answer')],
       };
     case 'ANSWERED':
@@ -225,6 +234,7 @@ export function useInterview() {
   const { start: startListening, stop: stopListening, snapshot, clearFatalError } = stt;
   const [silenceMs, setSilenceMs] = useState(0);
   const [resumable, setResumable] = useState<SessionState | null>(null);
+  const [bargeInEnabled, setBargeInEnabledState] = useState(readBargeInPref);
 
   // Latest state for callbacks and timers that must stay stable across renders.
   const stateRef = useRef(state);
@@ -323,6 +333,29 @@ export function useInterview() {
     };
     // speak / cancelSpeech are stable; depending on the whole tts object would restart speech every render.
   }, [state.phase, state.question?.id, speak, cancelSpeech, fail]);
+
+  // ---------- Voice barge-in: while a panelist asks a question (or re-prompts), listen too. If the
+  // candidate starts talking (words that aren't the panelist's own echo), stop the panelist. The
+  // cancelled speech resolves like "Skip", so the normal phase effect moves on to a fresh listen.
+  const bargeInLine =
+    state.phase === 'speaking' ? state.question?.text : state.phase === 'reprompt' ? state.repromptLine : null;
+
+  useEffect(() => {
+    if (!bargeInEnabled || state.inputMode !== 'voice' || !sttSupported || !bargeInLine) return;
+    startListening();
+    const timer = setInterval(() => {
+      const heard = snapshot()?.text;
+      if (heard && isBargeIn(heard, bargeInLine)) {
+        clearInterval(timer);
+        dispatch({ type: 'BARGE_IN' });
+        cancelSpeech();
+      }
+    }, BARGE_IN_CHECK_MS);
+    return () => {
+      clearInterval(timer);
+      stopListening();
+    };
+  }, [bargeInEnabled, state.inputMode, bargeInLine, startListening, stopListening, snapshot, cancelSpeech]);
 
   // ---------- Listening: STT + silence detection (voice mode only)
   // Set once an answer is finished, so a second "I'm done" click or a late timer tick can't
@@ -434,6 +467,15 @@ export function useInterview() {
     localStorage.removeItem(STORAGE_KEY);
     dispatch({ type: 'RESET' });
   }, []);
+  const setBargeInEnabled = useCallback((on: boolean) => {
+    setBargeInEnabledState(on);
+    try {
+      localStorage.setItem(BARGE_IN_KEY, on ? '1' : '0');
+    } catch {
+      /* storage unavailable: the choice lasts for this session only */
+    }
+  }, []);
+
   const setInputMode = useCallback((mode: 'voice' | 'text') => {
     clearFatalError();
     dispatch({ type: 'SET_INPUT_MODE', mode, reason: null });
@@ -449,6 +491,16 @@ export function useInterview() {
     silenceMs,
     silenceSubmitMs: SILENCE_SUBMIT_MS,
     resumable,
-    actions: { start, resume, discardResume, doneSpeaking, submitText, skipSpeech, repeatQuestion, endInterview, retry, reset, setInputMode },
+    bargeInEnabled,
+    actions: { start, resume, discardResume, doneSpeaking, submitText, skipSpeech, repeatQuestion, endInterview, retry, reset, setInputMode, setBargeInEnabled },
   };
+}
+
+/** Barge-in is on unless this browser turned it off. */
+function readBargeInPref(): boolean {
+  try {
+    return localStorage.getItem(BARGE_IN_KEY) !== '0';
+  } catch {
+    return true;
+  }
 }
