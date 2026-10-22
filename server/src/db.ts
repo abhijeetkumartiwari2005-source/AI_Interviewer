@@ -27,9 +27,17 @@ const interviewSchema = new Schema(
 
 export const InterviewModel = mongoose.model('Interview', interviewSchema);
 
-export async function connectDb(): Promise<void> {
-  await mongoose.connect(config.MONGODB_URI, { serverSelectionTimeoutMS: 10000 });
-  console.log(`[db] connected to ${mongoose.connection.name}`);
+let connecting: Promise<void> | null = null;
+
+/** Connects once and reuses the connection; a failed attempt is retried on the next call. */
+export function connectDb(): Promise<void> {
+  connecting ??= mongoose.connect(config.MONGODB_URI, { serverSelectionTimeoutMS: 10000 }).then(() => {
+    console.log(`[db] connected to ${mongoose.connection.name}`);
+  });
+  connecting.catch(() => {
+    connecting = null;
+  });
+  return connecting;
 }
 
 export const isDbConnected = () => mongoose.connection.readyState === 1;

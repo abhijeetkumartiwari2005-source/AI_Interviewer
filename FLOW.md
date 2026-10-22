@@ -239,7 +239,7 @@ client/src/
 | 2 | Client: voice hooks, `useInterview` state machine, interview room with avatars + listening indicator; full voice loop end to end |
 | 3 | `adaptive` + follow-ups/claim probes + stage plan; `scoring` + unit tests; delivery metrics; silence/unclear/barge-in handling |
 | 4 | Report module + Report page (competency bars, evidence, practice plan); second branch pack (Production); live dashboard; resume |
-| 5 | Polish, README (architecture, stack justification, model, prompt strategy, adaptive logic, evaluation, limitations), deploy (Vercel + Render + Atlas), record the 5–7 min demo |
+| 5 | Polish, README (architecture, stack justification, model, prompt strategy, adaptive logic, evaluation, limitations), deploy (Vercel for client and API + Atlas), record the 5–7 min demo |
 
 ## 17. Deliverables checklist
 | # | Deliverable | Covered by |

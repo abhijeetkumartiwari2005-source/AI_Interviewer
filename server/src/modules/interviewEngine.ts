@@ -64,7 +64,7 @@ export async function submitAnswer(id: string, body: AnswerBody) {
   const claimed = await InterviewModel.findOneAndUpdate(
     { _id: id, status: 'active', 'currentQuestion.id': body.questionId, pendingQuestionId: null },
     { $set: { pendingQuestionId: body.questionId } },
-    { new: true },
+    { returnDocument: 'after' },
   ).lean();
 
   if (!claimed) {
