@@ -12,6 +12,10 @@ said, and ends with an evidence-based readiness report.
 - **Evidence-based report:** seven competencies with rubric anchors, quotes taken verbatim from the
   student's answers, knowledge gaps, a practice plan, and how much of the interview was attempted.
 
+**Live demo:** [ai-interviewer-bay-psi.vercel.app](https://ai-interviewer-bay-psi.vercel.app) (Chrome
+or Edge; allow the microphone). API health:
+[ai-interviewer-gzou.vercel.app/api/health](https://ai-interviewer-gzou.vercel.app/api/health).
+
 System design in depth: [FLOW.md](FLOW.md).
 
 ---
